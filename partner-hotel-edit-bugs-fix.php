@@ -62,12 +62,24 @@ function bkr_partner_hotel_edit_data()
 
 
     /**
+     * Variables
+     */
+    $post_id = $_REQUEST['post_id'];
+
+    $edit_screen = $_REQUEST['edit_screen'];
+
+    $parent_hotel_id = $_REQUEST['parent_hotel_id'];
+
+    $hotel_id = ($edit_screen == 'hotel') ? $post_id : $parent_hotel_id;
+
+
+    /**
      * Get min price from hotel inventory
      */
     global $wpdb;
 
     $table = $wpdb->prefix . 'st_room_availability';
-    $sql = "SELECT price FROM {$table} WHERE parent_id = 10164 AND status = 'available'";
+    $sql = "SELECT price FROM {$table} WHERE parent_id = {$hotel_id} AND status = 'available'";
 
     $result = $wpdb->get_results($sql, ARRAY_A);
 
@@ -84,7 +96,6 @@ function bkr_partner_hotel_edit_data()
     /**
      * Update min_price column in st_hotel table
      */
-    $post_id = $_REQUEST['post_id'];
 
     $wpdb->update(
         $wpdb->prefix . 'st_hotel',
@@ -113,18 +124,20 @@ function bkr_partner_hotel_edit_data()
      * If edit screen is room then update the sinlge hotel meta with the multi_location value of room
      */
 
-    if ($_REQUEST['edit_screen'] == 'room') {
-        update_post_meta($_REQUEST['parent_hotel_id'], 'multi_location', $bkr_new_multi_location);
+    if ($edit_screen == 'room') {
+        update_post_meta($parent_hotel_id, 'multi_location', $bkr_new_multi_location);
 
         // Update parent hotel
-        wp_update_post(['ID' => $_REQUEST['parent_hotel_id']]);
+        wp_update_post(['ID' => $parent_hotel_id]);
     }
 
 
     /**
-     * Update current hotel signle post
+     * if edit screen is hotel then cpdate current hotel signle post
      */
-    wp_update_post(['ID' => $post_id]);
+    if ($edit_screen == 'hotel') {
+        wp_update_post(['ID' => $post_id]);
+    }
 
     // wp_send_json_success([
     //     'msg' => $min,
