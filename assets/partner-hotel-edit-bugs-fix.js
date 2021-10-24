@@ -15,8 +15,6 @@ if (document.querySelector(".st-partner-action .st-btn-continue")) {
     document.querySelector("#st-field-room_parent") &&
     document.querySelector("#st-field-room_parent").value;
 
-  // console.log(parent_hotel_id);
-
   document
     .querySelector(".st-partner-action .st-btn-continue")
     .addEventListener("click", async () => {
@@ -33,7 +31,5 @@ if (document.querySelector(".st-partner-action .st-btn-continue")) {
         contentType: false,
         body: form_data,
       });
-
-      console.log(response);
     });
 }
