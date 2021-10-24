@@ -34,7 +34,7 @@ add_action('wp_footer', function () {
 // Scripts
 
 add_action('wp_enqueue_scripts', function () {
-    wp_enqueue_script('bkr_partner_custom_actions', plugin_dir_url(__FILE__) . 'assets/partner-hotel-edit-bugs-fix.js', [], microtime(), true);
+    wp_enqueue_script('bkr_partner_custom_actions', plugin_dir_url(__FILE__) . 'assets/partner-hotel-edit-bugs-fix.js', [], '1.1', true);
     wp_add_inline_script('bkr_partner_custom_actions', 'const bkr_scripts = ' . json_encode([
         'nonce' => wp_create_nonce('bkr_partner_custom_actions_nonce'),
         'ajax_url' => admin_url('admin-ajax.php'),
@@ -95,16 +95,30 @@ function bkr_partner_hotel_edit_data()
     );
 
     /**
-     * Update multi_location column in st_hotel table with the value of single current hotel meta (multi_location)
+     * Update multi_location column in st_hotel table with the value of single current hotel or room meta (multi_location)
      */
+
+    $bkr_new_multi_location = get_post_meta($post_id, 'multi_location')[0];
 
     $wpdb->update(
         $wpdb->prefix . 'st_hotel',
         array(
-            'multi_location' => get_post_meta($post_id, 'multi_location')[0],
+            'multi_location' => $bkr_new_multi_location,
         ),
         array('post_id' => $post_id)
     );
+
+
+    /**
+     * If edit screen is room then update the sinlge hotel meta with the multi_location value of room
+     */
+
+    if ($_REQUEST['edit_screen'] == 'room') {
+        update_post_meta($_REQUEST['parent_hotel_id'], 'multi_location', $bkr_new_multi_location);
+
+        // Update parent hotel
+        wp_update_post(['ID' => $_REQUEST['parent_hotel_id']]);
+    }
 
 
     /**
